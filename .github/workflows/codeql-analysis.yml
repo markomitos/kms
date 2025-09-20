@@ -40,6 +40,7 @@ jobs:
           cache: 'maven'
 
       - name: Build with Maven
+        working-directory: ./kms
         run: mvn -B clean install -DskipTests
 
 
