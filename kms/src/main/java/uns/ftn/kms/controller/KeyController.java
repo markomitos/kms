@@ -1,11 +1,13 @@
 package uns.ftn.kms.controller;
 
+import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Controller;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import uns.ftn.kms.dto.CreateKeyRequest;
 import uns.ftn.kms.dto.KeyMaterialResponse;
+import uns.ftn.kms.dto.KeyResponse;
 import uns.ftn.kms.model.Key;
 import uns.ftn.kms.service.IKeyService;
 
@@ -17,23 +19,24 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class KeyController {
     private final IKeyService keyService;
+    private final ModelMapper modelMapper = new ModelMapper();
 
     @PostMapping
-    public ResponseEntity<Key> createKey() {
+    public ResponseEntity<KeyResponse> createKey() {
         Key createdKey = keyService.createSymmetricKey();
-        return ResponseEntity.ok(createdKey);
+        return ResponseEntity.ok(modelMapper.map(createdKey, KeyResponse.class));
     }
 
     @PostMapping("/{keyId}/rotate")
-    public ResponseEntity<Key> rotateKey(@PathVariable UUID keyId) {
+    public ResponseEntity<KeyResponse> rotateKey(@PathVariable UUID keyId) {
         Key rotatedKey = keyService.rotateKey(keyId);
-        return ResponseEntity.ok(rotatedKey);
+        return ResponseEntity.ok(modelMapper.map(rotatedKey, KeyResponse.class));
     }
 
     @GetMapping("/{keyId}")
-    public ResponseEntity<Key> getKeyById(@PathVariable UUID keyId) {
+    public ResponseEntity<KeyResponse> getKeyById(@PathVariable UUID keyId) {
         Key key = keyService.findKeyById(keyId);
-        return ResponseEntity.ok(key);
+        return ResponseEntity.ok(modelMapper.map(key, KeyResponse.class));
     }
 
     @GetMapping("/{keyId}/material")

@@ -1,20 +1,33 @@
 package uns.ftn.kms.model;
 
-import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import jakarta.persistence.*;
 
+import java.time.LocalDateTime;
+import java.util.*;
+
+@Entity
+@Table(name = "keys")
 public class Key {
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
     private String alias;
+    @Enumerated(EnumType.STRING)
     private KeyType type;
     private int currentVersion;
-    private Map<Integer, KeyVersion> versions;
+
+    @OneToMany(mappedBy = "key", cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
+    private List<KeyVersion> versions = new ArrayList<>();
+
+    public List<KeyVersion> getVersions() {
+        return versions;
+    }
+
+    public void setVersions(List<KeyVersion> versions) {
+        this.versions = versions;
+    }
 
     public Key() {
-        versions = new HashMap<>();
-        id = UUID.randomUUID();
     }
 
     public String getAlias() {
@@ -33,13 +46,6 @@ public class Key {
         this.currentVersion = currentVersion;
     }
 
-    public Map<Integer, KeyVersion> getVersions() {
-        return versions;
-    }
-
-    public void setVersions(Map<Integer, KeyVersion> versions) {
-        this.versions = versions;
-    }
 
     public KeyType getType() {
         return type;

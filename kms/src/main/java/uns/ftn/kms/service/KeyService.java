@@ -35,11 +35,13 @@ public class KeyService implements IKeyService {
         version1.setCreatedAt(LocalDateTime.now());
         version1.setEnabled(true);
 
+
         Key key = new Key();
+        version1.setKey(key);
         key.setAlias(aliasGeneratorService.generate());
         key.setType(KeyType.SYMMETRIC_AES);
         key.setCurrentVersion(1);
-        key.getVersions().put(1, version1);
+        key.getVersions().add(version1);
 
         keyRepository.save(key);
         return key;
@@ -58,8 +60,9 @@ public class KeyService implements IKeyService {
         newVersion.setEncryptedKeyMaterial(encryptedMaterial);
         newVersion.setCreatedAt(LocalDateTime.now());
         newVersion.setEnabled(true);
+        newVersion.setKey(key);
 
-        key.getVersions().put(newVersionNumber, newVersion);
+        key.getVersions().add(newVersion);
         key.setCurrentVersion(newVersionNumber);
 
         keyRepository.save(key);
