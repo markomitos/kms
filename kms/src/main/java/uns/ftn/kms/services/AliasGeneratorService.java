@@ -1,4 +1,4 @@
-package uns.ftn.kms.service;
+package uns.ftn.kms.services;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
