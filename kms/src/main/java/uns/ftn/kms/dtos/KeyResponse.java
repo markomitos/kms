@@ -1,9 +1,7 @@
-package uns.ftn.kms.dto;
+package uns.ftn.kms.dtos;
 
-import jakarta.persistence.*;
 import lombok.Data;
-import uns.ftn.kms.model.KeyType;
-import uns.ftn.kms.model.KeyVersion;
+import uns.ftn.kms.models.KeyType;
 
 import java.util.ArrayList;
 import java.util.List;

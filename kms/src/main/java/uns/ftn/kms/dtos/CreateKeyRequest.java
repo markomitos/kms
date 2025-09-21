@@ -1,4 +1,4 @@
-package uns.ftn.kms.dto;
+package uns.ftn.kms.dtos;
 
 import lombok.Data;
 

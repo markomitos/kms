@@ -1,15 +1,13 @@
-package uns.ftn.kms.controller;
+package uns.ftn.kms.controllers;
 
 import org.modelmapper.ModelMapper;
-import org.springframework.stereotype.Controller;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import uns.ftn.kms.dto.CreateKeyRequest;
-import uns.ftn.kms.dto.KeyMaterialResponse;
-import uns.ftn.kms.dto.KeyResponse;
-import uns.ftn.kms.model.Key;
-import uns.ftn.kms.service.IKeyService;
+import uns.ftn.kms.dtos.KeyMaterialResponse;
+import uns.ftn.kms.dtos.KeyResponse;
+import uns.ftn.kms.models.Key;
+import uns.ftn.kms.services.IKeyService;
 
 import java.util.Base64;
 import java.util.UUID;

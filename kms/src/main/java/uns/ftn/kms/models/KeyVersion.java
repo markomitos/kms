@@ -1,4 +1,4 @@
-package uns.ftn.kms.model;
+package uns.ftn.kms.models;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;

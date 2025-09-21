@@ -1,6 +1,5 @@
-package uns.ftn.kms.dto;
+package uns.ftn.kms.dtos;
 
-import jakarta.persistence.Column;
 import lombok.Data;
 
 import java.time.LocalDateTime;

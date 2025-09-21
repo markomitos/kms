@@ -1,6 +1,6 @@
-package uns.ftn.kms.service;
+package uns.ftn.kms.services;
 
-import uns.ftn.kms.model.Key;
+import uns.ftn.kms.models.Key;
 
 import java.util.UUID;
 

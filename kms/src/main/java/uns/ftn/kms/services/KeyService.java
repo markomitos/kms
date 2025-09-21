@@ -1,11 +1,11 @@
-package uns.ftn.kms.service;
+package uns.ftn.kms.services;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import uns.ftn.kms.model.Key;
-import uns.ftn.kms.model.KeyType;
-import uns.ftn.kms.model.KeyVersion;
-import uns.ftn.kms.repository.KeyRepository;
+import uns.ftn.kms.models.Key;
+import uns.ftn.kms.models.KeyType;
+import uns.ftn.kms.models.KeyVersion;
+import uns.ftn.kms.repositories.KeyRepository;
 
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;

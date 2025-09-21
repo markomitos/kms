@@ -1,8 +1,7 @@
-package uns.ftn.kms.model;
+package uns.ftn.kms.models;
 
 import jakarta.persistence.*;
 
-import java.time.LocalDateTime;
 import java.util.*;
 
 @Entity
