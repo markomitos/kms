@@ -1,5 +1,6 @@
 package uns.ftn.kms.services.auth;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.context.annotation.Primary;
@@ -17,7 +18,11 @@ import uns.ftn.kms.exceptions.InvalidCredentialsException;
 import uns.ftn.kms.models.auth.User;
 import uns.ftn.kms.models.auth.UserPrincipal;
 import uns.ftn.kms.models.auth.UserRole;
+import uns.ftn.kms.repositories.IRootKeyRepository;
 import uns.ftn.kms.repositories.IUserRepository;
+import uns.ftn.kms.services.CryptographyService;
+
+import javax.crypto.SecretKey;
 
 @RequiredArgsConstructor
 @Service
@@ -28,9 +33,11 @@ public class AuthService implements IAuthService {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authManager;
     private final JwtService jwtUtils;
-    private final CustomUserDetailsService customUserDetailsService;
+    private final IRootKeyRepository rootKeyRepository;
+    private final CryptographyService cryptographyService;
     private final ModelMapper mapper;
 
+    @Transactional
     @Override
     public UserResponse register(RegisterRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
@@ -42,7 +49,12 @@ public class AuthService implements IAuthService {
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setRole(UserRole.USER);
 
-        return mapper.map(userRepository.save(user), UserResponse.class);
+        User savedUser = userRepository.save(user);
+
+        SecretKey rootKey = cryptographyService.generateAes256Key();
+        rootKeyRepository.save(savedUser.getId().toString(), rootKey);
+
+        return mapper.map(savedUser, UserResponse.class);
     }
 
     @Override

@@ -5,10 +5,10 @@ import uns.ftn.kms.models.Key;
 import java.util.UUID;
 
 public interface IKeyService {
-    Key createSymmetricKey();
+    Key createSymmetricKey(UUID userId);
     // Key createAsymmetricKeyPair();
-    Key rotateKey(UUID keyId);
-    byte[] getActiveKeyMaterial(UUID keyId);
+    Key rotateKey(UUID keyId, UUID userId);
+    byte[] getActiveKeyMaterial(UUID keyId, UUID userId);
 
     Key findKeyById(UUID keyId);
 }
