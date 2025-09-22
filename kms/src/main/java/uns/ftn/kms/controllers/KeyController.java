@@ -5,8 +5,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import uns.ftn.kms.annotations.CurrentUser;
+import uns.ftn.kms.dtos.CreateKeyRequest;
 import uns.ftn.kms.dtos.KeyMaterialResponse;
 import uns.ftn.kms.dtos.KeyResponse;
+import uns.ftn.kms.dtos.PublicKeyResponse;
 import uns.ftn.kms.models.Key;
 import uns.ftn.kms.models.auth.UserPrincipal;
 import uns.ftn.kms.services.IKeyService;
@@ -22,8 +24,8 @@ public class KeyController {
     private final ModelMapper modelMapper = new ModelMapper();
 
     @PostMapping
-    public ResponseEntity<KeyResponse> createKey(@CurrentUser UserPrincipal currentUser) {
-        Key createdKey = keyService.createSymmetricKey(currentUser.getId());
+    public ResponseEntity<KeyResponse> createKey(@RequestBody CreateKeyRequest request, @CurrentUser UserPrincipal currentUser) {
+        Key createdKey = keyService.createKey(request, currentUser.getId());
         return ResponseEntity.ok(modelMapper.map(createdKey, KeyResponse.class));
     }
 
@@ -34,17 +36,33 @@ public class KeyController {
     }
 
     @GetMapping("/{keyId}")
-    public ResponseEntity<KeyResponse> getKeyById(@PathVariable UUID keyId) {
-        Key key = keyService.findKeyById(keyId);
+    public ResponseEntity<KeyResponse> getKeyById(@PathVariable UUID keyId, @CurrentUser UserPrincipal currentUser) {
+        Key key = keyService.findKeyById(keyId, currentUser.getId());
         return ResponseEntity.ok(modelMapper.map(key, KeyResponse.class));
     }
 
     @GetMapping("/{keyId}/material")
-    public ResponseEntity<KeyMaterialResponse> getActiveKeyMaterial(@PathVariable UUID keyId, @CurrentUser UserPrincipal currentUser) {
-        byte[] keyMaterialBytes = keyService.getActiveKeyMaterial(keyId, currentUser.getId());
-        String keyMaterialBase64 = Base64.getEncoder().encodeToString(keyMaterialBytes);
-        KeyMaterialResponse response = new KeyMaterialResponse(keyId, keyMaterialBase64);
-        return ResponseEntity.ok(response);
+    public ResponseEntity<?> getActiveSymmetricKeyMaterial(@PathVariable UUID keyId, @CurrentUser UserPrincipal currentUser) {
+        try {
+            byte[] keyMaterialBytes = keyService.getActiveSymmetricKeyMaterial(keyId, currentUser.getId());
+            String keyMaterialBase64 = Base64.getEncoder().encodeToString(keyMaterialBytes);
+            KeyMaterialResponse response = new KeyMaterialResponse(keyId, keyMaterialBase64);
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @GetMapping("/{keyId}/public-key")
+    public ResponseEntity<?> getActivePublicKey(@PathVariable UUID keyId, @CurrentUser UserPrincipal currentUser) {
+        try {
+            byte[] publicKeyBytes = keyService.getActivePublicKey(keyId, currentUser.getId());
+            String publicKeyBase64 = Base64.getEncoder().encodeToString(publicKeyBytes);
+            PublicKeyResponse response = new PublicKeyResponse(keyId, publicKeyBase64);
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
 }
