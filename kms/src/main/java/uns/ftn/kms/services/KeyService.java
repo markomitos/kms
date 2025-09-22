@@ -24,10 +24,10 @@ public class KeyService implements IKeyService {
     private static final String AES_ALGORITHM = "AES";
     private static final int AES_KEY_SIZE = 256;
 
-    public Key createSymmetricKey() {
+    public Key createSymmetricKey(UUID userId) {
         byte[] newKeyMaterial = generateAesKeyMaterial();
 
-        byte[] encryptedMaterial = rootKeyEncryptor.encrypt(newKeyMaterial);
+        byte[] encryptedMaterial = rootKeyEncryptor.encrypt(newKeyMaterial, userId);
 
         KeyVersion version1 = new KeyVersion();
         version1.setVersion(1);
@@ -47,12 +47,12 @@ public class KeyService implements IKeyService {
         return key;
     }
 
-    public Key rotateKey(UUID keyId) {
+    public Key rotateKey(UUID keyId, UUID userId) {
         Key key = keyRepository.findById(keyId)
                 .orElseThrow(() -> new RuntimeException("Key with ID: " + keyId + " not found."));
 
         byte[] newKeyMaterial = generateAesKeyMaterial();
-        byte[] encryptedMaterial = rootKeyEncryptor.encrypt(newKeyMaterial);
+        byte[] encryptedMaterial = rootKeyEncryptor.encrypt(newKeyMaterial, userId);
 
         int newVersionNumber = key.getCurrentVersion() + 1;
         KeyVersion newVersion = new KeyVersion();
@@ -70,19 +70,19 @@ public class KeyService implements IKeyService {
     }
 
     @Override
-    public byte[] getActiveKeyMaterial(UUID keyId) {
+    public byte[] getActiveKeyMaterial(UUID keyId, UUID userId) {
         Key key = keyRepository.findById(keyId)
                 .orElseThrow(() -> new RuntimeException("Key with ID: " + keyId + " not found."));
 
         int currentVersionNumber = key.getCurrentVersion();
-        KeyVersion currentVersion = key.getVersions().get(currentVersionNumber);
+        KeyVersion currentVersion = key.getVersions().get(currentVersionNumber - 1);
 
         if (currentVersion == null) {
             throw new IllegalStateException("Key data is corrupted. Active version " + currentVersionNumber + " not found for key ID: " + keyId);
         }
 
         byte[] encryptedMaterial = currentVersion.getEncryptedKeyMaterial();
-        return rootKeyEncryptor.decrypt(encryptedMaterial);
+        return rootKeyEncryptor.decrypt(encryptedMaterial, userId);
     }
 
     private byte[] generateAesKeyMaterial() {
