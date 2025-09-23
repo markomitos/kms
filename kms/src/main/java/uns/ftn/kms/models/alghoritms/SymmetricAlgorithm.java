@@ -1,7 +1,10 @@
 package uns.ftn.kms.models.alghoritms;
 
+import lombok.Getter;
+
 import java.util.Arrays;
 
+@Getter
 public enum SymmetricAlgorithm {
     AES_GCM_NOPADDING((short) 1, "AES/GCM/NoPadding"),
     AES_CBC_PKCS5PADDING((short) 2, "AES/CBC/PKCS5Padding");
@@ -12,14 +15,6 @@ public enum SymmetricAlgorithm {
     SymmetricAlgorithm(short id, String javaName) {
         this.id = id;
         this.javaName = javaName;
-    }
-
-    public short getId() {
-        return id;
-    }
-
-    public String getJavaName() {
-        return javaName;
     }
 
     public static SymmetricAlgorithm fromId(short id) {

@@ -8,8 +8,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class GenerateDataKeyResponse {
-    // Novi data ključ u plaintext obliku, za jednokratnu upotrebu
     private String plaintextKeyBase64;
-    // Isti data ključ, ali enkriptovan Root ključem, za čuvanje
     private String encryptedKeyBase64;
 }

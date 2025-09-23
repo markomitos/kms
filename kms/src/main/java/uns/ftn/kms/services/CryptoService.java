@@ -9,7 +9,7 @@ import uns.ftn.kms.models.KeyVersion;
 import uns.ftn.kms.models.alghoritms.SymmetricAlgorithm;
 import uns.ftn.kms.dtos.envelope.responses.GenerateDataKeyResponse;
 import uns.ftn.kms.repositories.KeyRepository;
-
+import uns.ftn.kms.models.alghoritms.AsymmetricAlgorithm;
 import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
@@ -25,6 +25,7 @@ import java.util.Base64;
 import java.util.Comparator;
 import java.util.UUID;
 
+
 @Service
 @RequiredArgsConstructor
 public class CryptoService {
@@ -35,7 +36,7 @@ public class CryptoService {
 
     private static final int GCM_TAG_LENGTH = 128;
 
-    // --- ENVELOPE ENCRYPTION METHODS ---
+    // --- ENVELOPE METHODS ---
 
     public GenerateDataKeyResponse generateDataKey(String alias, UUID userId) throws Exception {
         Key rootKey = keyRepository.findByAliasAndUserId(alias, userId)
@@ -57,16 +58,17 @@ public class CryptoService {
         return this.decrypt(alias, userId, encryptedDataKey);
     }
 
-    // --- ASYMMETRIC ENCRYPTION METHODS ---
+    // --- ASYMMETRIC METHODS ---
 
-    public byte[] encryptAsymmetric(String alias, UUID userId, byte[] plaintext) throws Exception {
-        // ISPRAVKA: Koristimo findByAliasAndUserId da osiguramo da samo vlasnik može da pokrene operaciju.
+    public byte[] encryptAsymmetric(String alias, UUID userId, byte[] plaintext, String algorithmName) throws Exception {
         Key key = keyRepository.findByAliasAndUserId(alias, userId)
                 .orElseThrow(() -> new EntityNotFoundException("Key with alias '" + alias + "' not found or you do not have permission."));
 
         if (key.getType() != KeyType.ASYMMETRIC_RSA) {
             throw new IllegalArgumentException("This operation requires an asymmetric key.");
         }
+
+        AsymmetricAlgorithm algorithm = AsymmetricAlgorithm.fromName(algorithmName);
 
         KeyVersion activeVersion = getActiveVersion(key);
         byte[] publicKeyBytes = activeVersion.getPublicKeyMaterial();
@@ -75,7 +77,7 @@ public class CryptoService {
         KeyFactory kf = KeyFactory.getInstance("RSA");
         PublicKey publicKey = kf.generatePublic(spec);
 
-        Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
+        Cipher cipher = Cipher.getInstance(algorithm.getJavaName());
         cipher.init(Cipher.ENCRYPT_MODE, publicKey);
         return cipher.doFinal(plaintext);
     }
@@ -88,25 +90,25 @@ public class CryptoService {
             throw new IllegalArgumentException("This operation requires an asymmetric key.");
         }
 
-        // Prolazimo kroz sve verzije ključa, od najnovije ka najstarijoj,
-        // jer ne znamo kojim javnim ključem (kojom verzijom) je podatak enkriptovan.
         for (KeyVersion version : key.getVersions().stream().sorted(Comparator.comparingInt(KeyVersion::getVersion).reversed()).toList()) {
             try {
                 byte[] privateKeyBytes = rootKeyEncryptor.decrypt(version.getEncryptedKeyMaterial(), userId);
-
                 PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(privateKeyBytes);
                 KeyFactory kf = KeyFactory.getInstance("RSA");
                 PrivateKey privateKey = kf.generatePrivate(spec);
 
-                Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
-                cipher.init(Cipher.DECRYPT_MODE, privateKey);
-                return cipher.doFinal(ciphertext); // Ako uspe, vraćamo rezultat
+                for (AsymmetricAlgorithm algorithm : AsymmetricAlgorithm.values()) {
+                    try {
+                        Cipher cipher = Cipher.getInstance(algorithm.getJavaName());
+                        cipher.init(Cipher.DECRYPT_MODE, privateKey);
+                        return cipher.doFinal(ciphertext);
+                    } catch (Exception e) {
+                    }
+                }
             } catch (Exception e) {
-                // Ako dekripcija ne uspe (npr. pogrešan ključ), ignorišemo grešku i prelazimo na sledeću verziju.
             }
         }
-        // Ako nijedna verzija nije uspela da dekriptuje, bacamo grešku.
-        throw new RuntimeException("Decryption failed. Data could not be decrypted with any available version of the key.");
+        throw new RuntimeException("Decryption failed. Data could not be decrypted with any available key version or algorithm.");
     }
 
     // --- PRIVATE HELPER METHODS ---
@@ -129,7 +131,6 @@ public class CryptoService {
         SymmetricAlgorithm algorithm = SymmetricAlgorithm.fromName(algorithmName);
         KeyVersion keyVersion = getActiveVersion(key);
 
-        // ISPRAVKA: Prosleđujemo .toString()
         byte[] decryptedKeyMaterial = rootKeyEncryptor.decrypt(keyVersion.getEncryptedKeyMaterial(), userId);
         SecretKey encryptionKey = new SecretKeySpec(decryptedKeyMaterial, 0, decryptedKeyMaterial.length, "AES");
 

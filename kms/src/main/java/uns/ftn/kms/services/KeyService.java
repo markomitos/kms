@@ -31,9 +31,9 @@ public class KeyService implements IKeyService {
     public Key createKey(CreateKeyRequest request, UUID userId) {
         switch (request.getKeyType()) {
             case SYMMETRIC_AES:
-                return createSymmetricKey(userId); // Poziva postojeću logiku
+                return createSymmetricKey(userId);
             case ASYMMETRIC_RSA:
-                return createAsymmetricKey(userId, request.getKeySize()); // Poziva novu logiku
+                return createAsymmetricKey(userId, request.getKeySize());
             default:
                 throw new IllegalArgumentException("Unsupported key type: " + request.getKeyType());
         }
@@ -65,28 +65,26 @@ public class KeyService implements IKeyService {
 
     private Key createAsymmetricKey(UUID userId, int keySize) {
         try {
-            // 1. Generiši RSA par ključeva
             KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
-            keyPairGenerator.initialize(keySize > 0 ? keySize : 2048); // Default 2048 bita
+            keyPairGenerator.initialize(keySize > 0 ? keySize : 2048);
             KeyPair keyPair = keyPairGenerator.generateKeyPair();
 
             byte[] privateKeyMaterial = keyPair.getPrivate().getEncoded();
             byte[] publicKeyMaterial = keyPair.getPublic().getEncoded();
 
-            // 2. Enkriptuj samo PRIVATNI ključ sa korisnikovim root ključem
             byte[] encryptedPrivateKey = rootKeyEncryptor.encrypt(privateKeyMaterial, userId);
 
             KeyVersion version1 = new KeyVersion();
             version1.setVersion(1);
-            version1.setEncryptedKeyMaterial(encryptedPrivateKey); // Čuvamo enkriptovan privatni ključ
-            version1.setPublicKeyMaterial(publicKeyMaterial); // Javni ključ čuvamo kao plaintext
+            version1.setEncryptedKeyMaterial(encryptedPrivateKey);
+            version1.setPublicKeyMaterial(publicKeyMaterial);
 
             Key key = new Key();
             version1.setKey(key);
             key.setAlias(aliasGeneratorService.generate());
             key.setUserId(userId);
             key.setCurrentVersion(1);
-            key.setType(KeyType.ASYMMETRIC_RSA); // Postavljamo ispravan tip
+            key.setType(KeyType.ASYMMETRIC_RSA);
             key.getVersions().add(version1);
 
             return keyRepository.save(key);
@@ -99,7 +97,6 @@ public class KeyService implements IKeyService {
     public Key rotateKey(UUID keyId, UUID userId) {
         Key key = findKeyById(keyId, userId);
 
-        // Proveravamo kog je tipa ključ koji rotiramo
         switch (key.getType()) {
             case SYMMETRIC_AES:
                 byte[] newAesMaterial = generateAesKeyMaterial();
@@ -111,8 +108,7 @@ public class KeyService implements IKeyService {
                 break;
 
             case ASYMMETRIC_RSA:
-                // Generišemo novi par ključeva
-                KeyPair newRsaPair = generateRsaKeyPair(2048); // Pretpostavka veličine
+                KeyPair newRsaPair = generateRsaKeyPair(2048);
                 byte[] privateKeyMaterial = newRsaPair.getPrivate().getEncoded();
                 byte[] publicKeyMaterial = newRsaPair.getPublic().getEncoded();
                 byte[] encryptedPrivateKey = rootKeyEncryptor.encrypt(privateKeyMaterial, userId);
@@ -129,7 +125,6 @@ public class KeyService implements IKeyService {
         return keyRepository.save(key);
     }
 
-    // Pomoćna metoda da se izbegne dupliranje koda
     private KeyVersion createNewVersion(Key key, byte[] encryptedMaterial, byte[] publicMaterial) {
         int newVersionNumber = key.getCurrentVersion() + 1;
         KeyVersion newVersion = new KeyVersion();
@@ -142,7 +137,6 @@ public class KeyService implements IKeyService {
         return newVersion;
     }
 
-    // Pomoćna metoda za generisanje RSA para (slično kao u createAsymmetricKey)
     private KeyPair generateRsaKeyPair(int keySize) {
         try {
             KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
@@ -158,10 +152,8 @@ public class KeyService implements IKeyService {
         if (key.getType() != KeyType.SYMMETRIC_AES) {
             throw new IllegalArgumentException("Key is not a symmetric key.");
         }
-        // Koristimo pomoćnu metodu da dobijemo aktivnu verziju
         KeyVersion currentVersion = getActiveVersion(key);
 
-        // Vraćamo dekriptovani materijal
         return rootKeyEncryptor.decrypt(currentVersion.getEncryptedKeyMaterial(), userId);
     }
 
@@ -170,13 +162,11 @@ public class KeyService implements IKeyService {
         if (key.getType() != KeyType.ASYMMETRIC_RSA) {
             throw new IllegalArgumentException("Key is not an asymmetric key.");
         }
-        // Koristimo istu pomoćnu metodu
         KeyVersion currentVersion = getActiveVersion(key);
 
         if (currentVersion.getPublicKeyMaterial() == null) {
             throw new IllegalStateException("Public key material not found for this key version.");
         }
-        // Vraćamo javni ključ (koji je plaintext)
         return currentVersion.getPublicKeyMaterial();
     }
 

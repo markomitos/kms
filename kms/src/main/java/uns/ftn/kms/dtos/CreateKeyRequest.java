@@ -5,6 +5,6 @@ import uns.ftn.kms.models.KeyType;
 
 @Data
 public class CreateKeyRequest {
-    private KeyType keyType; // Očekuje "SYMMETRIC_AES" ili "ASYMMETRIC_RSA"
+    private KeyType keyType;
     private int keySize;
 }
