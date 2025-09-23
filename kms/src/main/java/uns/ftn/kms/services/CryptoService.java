@@ -38,7 +38,7 @@ public class CryptoService {
 
     // --- ENVELOPE METHODS ---
 
-    public GenerateDataKeyResponse generateDataKey(String alias, UUID userId) throws Exception {
+    public GenerateDataKeyResponse generateDataKey(String alias, UUID userId, String algorithmName) throws Exception {
         Key rootKey = keyRepository.findByAliasAndUserId(alias, userId)
                 .orElseThrow(() -> new EntityNotFoundException("Root key with alias '" + alias + "' not found or you do not have permission."));
 
@@ -46,7 +46,7 @@ public class CryptoService {
             throw new IllegalArgumentException("Envelope encryption is only supported with symmetric root keys.");
         }
         byte[] plaintextDataKey = generateAesKeyMaterial();
-        byte[] encryptedDataKey = this.encrypt(alias, userId, plaintextDataKey, SymmetricAlgorithm.AES_GCM_NOPADDING.name());
+        byte[] encryptedDataKey = this.encrypt(alias, userId, plaintextDataKey, algorithmName);
 
         return new GenerateDataKeyResponse(
                 Base64.getEncoder().encodeToString(plaintextDataKey),

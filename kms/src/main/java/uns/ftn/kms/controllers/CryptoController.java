@@ -13,6 +13,7 @@ import uns.ftn.kms.dtos.envelope.requests.DecryptDataKeyRequest;
 import uns.ftn.kms.dtos.envelope.responses.DecryptDataKeyResponse;
 import uns.ftn.kms.dtos.envelope.requests.GenerateDataKeyRequest;
 import uns.ftn.kms.dtos.envelope.responses.GenerateDataKeyResponse;
+import uns.ftn.kms.models.alghoritms.SymmetricAlgorithm;
 import uns.ftn.kms.models.auth.UserPrincipal;
 import uns.ftn.kms.services.AlgorithmService;
 import uns.ftn.kms.services.CryptoService;
@@ -31,7 +32,13 @@ public class CryptoController {
     @PostMapping("/generate-data-key")
     public ResponseEntity<?> generateDataKey(@RequestBody GenerateDataKeyRequest request, @CurrentUser UserPrincipal currentUser) {
         try {
-            GenerateDataKeyResponse response = cryptoService.generateDataKey(request.getAlias(), currentUser.getId());
+            SymmetricAlgorithm.fromName(request.getAlgorithm());
+
+            GenerateDataKeyResponse response = cryptoService.generateDataKey(
+                    request.getAlias(),
+                    currentUser.getId(),
+                    request.getAlgorithm()
+            );
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             return ResponseEntity.status(500).body(e.getMessage());

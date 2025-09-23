@@ -5,4 +5,5 @@ import lombok.Data;
 @Data
 public class GenerateDataKeyRequest {
     private String alias;
+    private String algorithm;
 }
