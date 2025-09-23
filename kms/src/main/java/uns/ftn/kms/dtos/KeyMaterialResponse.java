@@ -13,20 +13,4 @@ public class KeyMaterialResponse {
         this.keyId = keyId;
         this.keyMaterialBase64 = keyMaterialBase64;
     }
-
-    public UUID getKeyId() {
-        return keyId;
-    }
-
-    public void setKeyId(UUID keyId) {
-        this.keyId = keyId;
-    }
-
-    public String getKeyMaterialBase64() {
-        return keyMaterialBase64;
-    }
-
-    public void setKeyMaterialBase64(String keyMaterialBase64) {
-        this.keyMaterialBase64 = keyMaterialBase64;
-    }
 }

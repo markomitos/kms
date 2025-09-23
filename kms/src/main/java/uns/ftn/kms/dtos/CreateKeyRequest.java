@@ -1,16 +1,10 @@
 package uns.ftn.kms.dtos;
 
 import lombok.Data;
+import uns.ftn.kms.models.KeyType;
 
 @Data
 public class CreateKeyRequest {
-    private String alias;
-
-    public String getAlias() {
-        return alias;
-    }
-
-    public void setAlias(String alias) {
-        this.alias = alias;
-    }
+    private KeyType keyType;
+    private int keySize;
 }

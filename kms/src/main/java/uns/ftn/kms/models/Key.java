@@ -1,11 +1,13 @@
 package uns.ftn.kms.models;
 
 import jakarta.persistence.*;
+import lombok.Data;
 
 import java.util.*;
 
 @Entity
 @Table(name = "keys")
+@Data
 public class Key {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -13,53 +15,15 @@ public class Key {
     private String alias;
     @Enumerated(EnumType.STRING)
     private KeyType type;
+    @Column(nullable = false)
     private int currentVersion;
+
+    @Column(nullable = false)
+    private UUID userId;
 
     @OneToMany(mappedBy = "key", cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
     private List<KeyVersion> versions = new ArrayList<>();
 
-    public List<KeyVersion> getVersions() {
-        return versions;
-    }
-
-    public void setVersions(List<KeyVersion> versions) {
-        this.versions = versions;
-    }
-
     public Key() {
     }
-
-    public String getAlias() {
-        return alias;
-    }
-
-    public void setAlias(String alias) {
-        this.alias = alias;
-    }
-
-    public int getCurrentVersion() {
-        return currentVersion;
-    }
-
-    public void setCurrentVersion(int currentVersion) {
-        this.currentVersion = currentVersion;
-    }
-
-
-    public KeyType getType() {
-        return type;
-    }
-
-    public void setType(KeyType type) {
-        this.type = type;
-    }
-
-    public UUID getId() {
-        return id;
-    }
-
-    public void setId(UUID id) {
-        this.id = id;
-    }
-
 }
