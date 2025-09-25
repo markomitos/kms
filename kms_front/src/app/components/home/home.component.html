@@ -1,14 +1,120 @@
-<div class="text-center">
-  <h1 class="text-3xl font-bold text-gray-800 dark:text-white mb-6">
-    Welcome Home!
-  </h1>
-  <p class="text-gray-500 dark:text-gray-400 mb-8">
-    You have successfully logged in.
-  </p>
-  <button
-    (click)="logout()"
-    class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 dark:focus:ring-offset-gray-800 transition-all duration-300 ease-in-out"
-  >
-    Logout
-  </button>
+<div class="bg-gray-50 dark:bg-gray-900 w-full p-8">
+
+    <header class="flex flex-row justify-between items-center bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md mb-8">
+      <div>
+        <h1 class="text-2xl font-bold text-gray-800 dark:text-white">KMS Dashboard</h1>
+        <p class="text-gray-500 dark:text-gray-400">PoC Interface for Key Management Service</p>
+      </div>
+      <button (click)="logout()" class="btn-danger">
+        Logout
+      </button>
+    </header>
+
+    <main class="grid grid-cols-3 gap-8">
+
+      <section class="flex flex-col">
+        <div class="card">
+          <h2 class="card-header">🔑 Key Management</h2>
+
+          <div class="space-y-4">
+            <h3 class="font-medium text-gray-700 dark:text-gray-300">Create New Key</h3>
+            <input type="number" [(ngModel)]="createKeySize" placeholder="Key Size (e.g., 2048)" class="input-field w-full">
+            <select [(ngModel)]="createKeyType" class="input-field w-full">
+              <option value="SYMMETRIC_AES">Symmetric</option>
+              <option value="ASYMMETRIC_RSA">Asymmetric</option>
+            </select>
+            <button (click)="createKey()" class="btn-primary w-full">Create Key</button>
+            <pre class="response-box" *ngIf="createKeyResponse">{{ createKeyResponse | json }}</pre>
+          </div>
+
+          <hr class="my-6 border-gray-200 dark:border-gray-700">
+
+          <div class="space-y-4">
+            <h3 class="font-medium text-gray-700 dark:text-gray-300">Actions on Existing Key</h3>
+            <label for="key-selector" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Select Key</label>
+            <select id="key-selector" [(ngModel)]="selectedKeyId" class="input-field w-full">
+              <option [ngValue]="null" disabled>-- Select a Key --</option>
+              <option *ngFor="let key of keys" [value]="key.id">
+                {{ key.alias || 'No Alias' }} ({{ key.id }})
+              </option>
+            </select>
+            <div class="grid grid-cols-2 gap-2">
+              <button (click)="getKeyById()" class="btn-secondary">Get Details</button>
+              <button (click)="rotateKey()" class="btn-secondary">Rotate</button>
+              <button (click)="getActiveSymmetricKeyMaterial()" class="btn-secondary">Symm Material</button>
+              <button (click)="getActivePublicKey()" class="btn-secondary">Public Key</button>
+            </div>
+            <pre class="response-box" *ngIf="activeKeyActionResponse">{{ activeKeyActionResponse | json }}</pre>
+          </div>
+        </div>
+      </section>
+
+      <section class="flex flex-col">
+        <div class="card">
+          <h2 class="card-header">📦 Envelope Encryption</h2>
+          <select [(ngModel)]="opAliasS" class="input-field w-full mb-4">
+            <option [ngValue]="null" disabled>-- Select a Symmetric Key --</option>
+
+            <option *ngFor="let key of symmetricKeys" [value]="key.alias">
+              {{ key.alias }}
+            </option>
+          </select>
+
+          <div class="space-y-4 mb-4">
+            <h3 class="font-medium text-gray-700 dark:text-gray-300">1. Generate Data Key</h3>
+            <select [(ngModel)]="symmAlgorithm" class="input-field w-full" *ngIf="symmetricAlgorithms">
+              <option [ngValue]="null" disabled>-- Select a Symmetric Algorithm --</option>
+              <option *ngFor="let alg of symmetricAlgorithms" [value]="alg.name">{{ alg.name }}</option>
+            </select>
+            <button (click)="generateDataKey()" class="btn-primary w-full">Generate</button>
+            <pre class="response-box" *ngIf="generateDataKeyResponse">{{ generateDataKeyResponse | json }}</pre>
+          </div>
+
+          <hr class="my-6 border-gray-200 dark:border-gray-700">
+
+          <div class="space-y-4">
+            <h3 class="font-medium text-gray-700 dark:text-gray-300">2. Decrypt Data Key</h3>
+            <p class="text-sm text-gray-500 dark:text-gray-400">Uses encrypted key from the step above.</p>
+            <button (click)="decryptDataKey()" class="btn-primary w-full" [disabled]="!encryptedDataKey">Decrypt</button>
+            <pre class="response-box" *ngIf="decryptDataKeyResponse">{{ decryptDataKeyResponse | json }}</pre>
+          </div>
+        </div>
+      </section>
+
+      <section class="flex flex-col">
+        <div class="card">
+          <h2 class="card-header">🛡️ Asymmetric Operations</h2>
+          <select [(ngModel)]="opAliasAS" class="input-field w-full mb-4">
+            <option [ngValue]="null" disabled>-- Select an Asymmetric Key --</option>
+
+            <option *ngFor="let key of asymmetricKeys" [value]="key.alias">
+              {{ key.alias }}
+            </option>
+          </select>
+          <textarea [(ngModel)]="dataToProcess" rows="2" placeholder="Plaintext data to process"
+                    class="input-field w-full mb-4"></textarea>
+
+          <div class="space-y-4 mb-4">
+            <h3 class="font-medium text-gray-700 dark:text-gray-300">1. Encrypt with Public Key</h3>
+            <select [(ngModel)]="asymmAlgorithm" class="input-field w-full" *ngIf="asymmetricAlgorithms">
+              <option [ngValue]="null" disabled>-- Select an Asymmetric Algorithm --</option>
+              <option *ngFor="let alg of asymmetricAlgorithms" [value]="alg.name">{{ alg.name }}</option>
+            </select>
+            <button (click)="encryptAsymmetric()" class="btn-primary w-full">Encrypt</button>
+            <pre class="response-box" *ngIf="encryptAsymmetricResponse">{{ encryptAsymmetricResponse | json }}</pre>
+          </div>
+
+          <hr class="my-6 border-gray-200 dark:border-gray-700">
+
+          <div class="space-y-4">
+            <h3 class="font-medium text-gray-700 dark:text-gray-300">2. Decrypt with Private Key</h3>
+            <p class="text-sm text-gray-500 dark:text-gray-400">Uses encrypted data from the step above.</p>
+            <button (click)="decryptAsymmetric()" class="btn-primary w-full"
+                    [disabled]="!encryptedAsymmetricData">Decrypt</button>
+            <pre class="response-box" *ngIf="decryptAsymmetricResponse">{{ decryptAsymmetricResponse | json }}</pre>
+          </div>
+        </div>
+      </section>
+
+    </main>
 </div>

@@ -16,6 +16,7 @@ import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.UUID;
 @RequiredArgsConstructor
 @Service
@@ -195,5 +196,10 @@ public class KeyService implements IKeyService {
     public Key findKeyById(UUID keyId, UUID userId) {
         return keyRepository.findByIdAndUserId(keyId, userId)
                 .orElseThrow(() -> new EntityNotFoundException("Key not found or you do not have permission."));
+    }
+
+    @Override
+    public Collection<Key> findKeysByUserId(UUID id) {
+        return keyRepository.findAllByUserId(id);
     }
 }
