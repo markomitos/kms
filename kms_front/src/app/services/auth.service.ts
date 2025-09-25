@@ -45,4 +45,12 @@ export class AuthService {
       localStorage.removeItem('authToken');
     }
   }
+
+  getToken(): string | null | undefined {
+    if (typeof localStorage !== 'undefined') {
+      return localStorage.getItem('authToken');
+    } else {
+      return null
+    }
+  }
 }

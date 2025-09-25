@@ -14,7 +14,10 @@ import uns.ftn.kms.models.auth.UserPrincipal;
 import uns.ftn.kms.services.IKeyService;
 
 import java.util.Base64;
+import java.util.Collection;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/keys")
@@ -39,6 +42,15 @@ public class KeyController {
     public ResponseEntity<KeyResponse> getKeyById(@PathVariable UUID keyId, @CurrentUser UserPrincipal currentUser) {
         Key key = keyService.findKeyById(keyId, currentUser.getId());
         return ResponseEntity.ok(modelMapper.map(key, KeyResponse.class));
+    }
+
+    @GetMapping("")
+    public ResponseEntity<List<KeyResponse>> getKeysByUser(@CurrentUser UserPrincipal currentUser) {
+        Collection<Key> keys = keyService.findKeysByUserId(currentUser.getId());
+        List<KeyResponse> keyResponses = keys.stream()
+                .map(key -> modelMapper.map(key, KeyResponse.class))
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(keyResponses);
     }
 
     @GetMapping("/{keyId}/material")
