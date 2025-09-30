@@ -2,6 +2,7 @@ package uns.ftn.kms.services;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import uns.ftn.kms.annotations.KmsAuditLog;
 import uns.ftn.kms.exceptions.EntityNotFoundException;
 import uns.ftn.kms.models.Key;
 import uns.ftn.kms.models.KeyType;
@@ -38,6 +39,7 @@ public class CryptoService {
 
     // --- ENVELOPE METHODS ---
 
+    @KmsAuditLog(action = "GENERATE_DATA_KEY")
     public GenerateDataKeyResponse generateDataKey(String alias, UUID userId, String algorithmName) throws Exception {
         Key rootKey = keyRepository.findByAliasAndUserId(alias, userId)
                 .orElseThrow(() -> new EntityNotFoundException("Root key with alias '" + alias + "' not found or you do not have permission."));
@@ -53,13 +55,13 @@ public class CryptoService {
                 Base64.getEncoder().encodeToString(encryptedDataKey)
         );
     }
-
+    @KmsAuditLog(action = "DECRYPT_DATA_KEY")
     public byte[] decryptDataKey(String alias, UUID userId, byte[] encryptedDataKey) throws Exception {
         return this.decrypt(alias, userId, encryptedDataKey);
     }
 
     // --- ASYMMETRIC METHODS ---
-
+    @KmsAuditLog(action = "ENCRYPT_ASYMMETRIC")
     public byte[] encryptAsymmetric(String alias, UUID userId, byte[] plaintext, String algorithmName) throws Exception {
         Key key = keyRepository.findByAliasAndUserId(alias, userId)
                 .orElseThrow(() -> new EntityNotFoundException("Key with alias '" + alias + "' not found or you do not have permission."));
@@ -81,7 +83,7 @@ public class CryptoService {
         cipher.init(Cipher.ENCRYPT_MODE, publicKey);
         return cipher.doFinal(plaintext);
     }
-
+    @KmsAuditLog(action = "DECRYPT_ASYMMETRIC")
     public byte[] decryptAsymmetric(String alias, UUID userId, byte[] ciphertext) throws Exception {
         Key key = keyRepository.findByAliasAndUserId(alias, userId)
                 .orElseThrow(() -> new EntityNotFoundException("Key not found or you do not have permission."));

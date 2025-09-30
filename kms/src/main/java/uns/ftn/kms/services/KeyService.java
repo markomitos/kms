@@ -2,6 +2,7 @@ package uns.ftn.kms.services;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import uns.ftn.kms.annotations.KmsAuditLog;
 import uns.ftn.kms.dtos.CreateKeyRequest;
 import uns.ftn.kms.exceptions.EntityNotFoundException;
 import uns.ftn.kms.models.Key;
@@ -29,6 +30,7 @@ public class KeyService implements IKeyService {
     private static final String AES_ALGORITHM = "AES";
     private static final int AES_KEY_SIZE = 256;
 
+    @KmsAuditLog(action = "CREATE_KEY")
     public Key createKey(CreateKeyRequest request, UUID userId) {
         switch (request.getKeyType()) {
             case SYMMETRIC_AES:
@@ -95,6 +97,7 @@ public class KeyService implements IKeyService {
         }
     }
 
+    @KmsAuditLog(action = "ROTATE_KEY")
     public Key rotateKey(UUID keyId, UUID userId) {
         Key key = findKeyById(keyId, userId);
 
@@ -148,6 +151,7 @@ public class KeyService implements IKeyService {
         }
     }
 
+    @KmsAuditLog(action = "GET_ACTIVE_SYMMETRIC_KEY_MATERIAL")
     public byte[] getActiveSymmetricKeyMaterial(UUID keyId, UUID userId) {
         Key key = findKeyById(keyId, userId);
         if (key.getType() != KeyType.SYMMETRIC_AES) {
@@ -158,6 +162,7 @@ public class KeyService implements IKeyService {
         return rootKeyEncryptor.decrypt(currentVersion.getEncryptedKeyMaterial(), userId);
     }
 
+    @KmsAuditLog(action = "GET_ACTIVE_PUBLIC_KEY")
     public byte[] getActivePublicKey(UUID keyId, UUID userId) {
         Key key = findKeyById(keyId, userId);
         if (key.getType() != KeyType.ASYMMETRIC_RSA) {
@@ -192,6 +197,7 @@ public class KeyService implements IKeyService {
         }
     }
 
+    @KmsAuditLog(action = "GET_KEY_METADATA")
     @Override
     public Key findKeyById(UUID keyId, UUID userId) {
         return keyRepository.findByIdAndUserId(keyId, userId)
