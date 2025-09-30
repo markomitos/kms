@@ -12,7 +12,7 @@ import org.slf4j.MDC;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
-import uns.ftn.kms.annotations.KmsAuditLog; // Proveri putanju
+import uns.ftn.kms.annotations.KmsAuditLog;
 
 import jakarta.servlet.http.HttpServletRequest;
 import java.lang.reflect.Method;
@@ -35,7 +35,7 @@ public class LoggingAspect {
     public Object logKmsAction(ProceedingJoinPoint joinPoint) throws Throwable {
         long startTime = System.currentTimeMillis();
         MDC.put("correlationId", UUID.randomUUID().toString());
-        Object result;
+        Object result = null;
         String status = "SUCCESS";
         String errorMessage = null;
 
@@ -59,7 +59,7 @@ public class LoggingAspect {
             logData.put("event_name", auditAnnotation.action());
             logData.put("status", status);
             logData.put("duration_ms", duration);
-            logData.put("actor", "predefined-user-role"); // Kasnije zameni pravim korisnikom
+            logData.put("actor", "predefined-user-role");
 
             HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
             Map<String, String> source = new HashMap<>();
@@ -82,9 +82,12 @@ public class LoggingAspect {
                     continue;
                 }
 
+                Package argPackage = argValue.getClass().getPackage();
+
                 if (argValue instanceof String || argValue instanceof UUID || argValue instanceof Number || argValue instanceof Boolean) {
                     methodArgs.put(paramName, argValue);
-                } else if (argValue.getClass().getPackage().getName().startsWith("uns.ftn.kms.dtos")) {
+                }
+                else if (argPackage != null && argPackage.getName().startsWith("uns.ftn.kms.dtos")) {
                     try {
                         methodArgs.put(paramName, objectMapper.convertValue(argValue, Map.class));
                     } catch (Exception e) {
