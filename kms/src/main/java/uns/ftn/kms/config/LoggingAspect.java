@@ -14,6 +14,11 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import uns.ftn.kms.annotations.KmsAuditLog;
 
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+
+
 import jakarta.servlet.http.HttpServletRequest;
 import java.lang.reflect.Method;
 import java.util.HashMap;
@@ -59,7 +64,17 @@ public class LoggingAspect {
             logData.put("event_name", auditAnnotation.action());
             logData.put("status", status);
             logData.put("duration_ms", duration);
-            logData.put("actor", "predefined-user-role");
+
+            String actor = "anonymousUser";
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+            if (authentication != null && authentication.isAuthenticated()) {
+                Object principal = authentication.getPrincipal();
+                if (principal instanceof UserDetails) {
+                    actor = ((UserDetails) principal).getUsername();
+                }
+            }
+            logData.put("actor", actor);
 
             HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
             Map<String, String> source = new HashMap<>();
