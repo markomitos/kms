@@ -101,6 +101,17 @@ public class LoggingAspect {
             }
             logData.put("request_parameters", methodArgs);
 
+            if (status.equals("SUCCESS") && result != null) {
+                Map<String, Object> responseData = new HashMap<>();
+                if (result instanceof uns.ftn.kms.models.Key keyResult) {
+                    responseData.put("key_id", keyResult.getId());
+                    responseData.put("key_alias", keyResult.getAlias());
+                }
+                if (!responseData.isEmpty()) {
+                    logData.put("response_data", responseData);
+                }
+            }
+
             if (errorMessage != null) {
                 logData.put("error_details", errorMessage);
             }
