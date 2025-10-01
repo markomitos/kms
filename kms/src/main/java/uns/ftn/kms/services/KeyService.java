@@ -208,4 +208,15 @@ public class KeyService implements IKeyService {
     public Collection<Key> findKeysByUserId(UUID id) {
         return keyRepository.findAllByUserId(id);
     }
+
+    @Override
+    @KmsAuditLog(action = "GET_ACTIVE_PRIVATE_KEY_MATERIAL")
+    public byte[] getActivePrivateKeyMaterial(UUID keyId, UUID userId) {
+        Key key = findKeyById(keyId, userId);
+        if (key.getType() != KeyType.ASYMMETRIC_RSA) {
+            throw new IllegalArgumentException("Key is not an asymmetric RSA key.");
+        }
+        KeyVersion activeVersion = getActiveVersion(key);
+        return rootKeyEncryptor.decrypt(activeVersion.getEncryptedKeyMaterial(), userId);
+    }
 }

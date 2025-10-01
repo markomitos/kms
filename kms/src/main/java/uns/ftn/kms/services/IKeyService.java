@@ -14,4 +14,6 @@ public interface IKeyService {
     Key findKeyById(UUID keyId, UUID userId);
 
     Collection<Key> findKeysByUserId(UUID id);
+
+    byte[] getActivePrivateKeyMaterial(UUID keyId, UUID userId);
 }
