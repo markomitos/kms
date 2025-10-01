@@ -126,7 +126,6 @@
               {{ key.alias }}
             </option>
           </select>
-
           <textarea [(ngModel)]="dataToSign" rows="2" placeholder="Data to sign"
                     class="input-field w-full mb-4"></textarea>
 
@@ -144,11 +143,14 @@
 
           <div class="space-y-4">
             <h3 class="font-medium text-gray-700 dark:text-gray-300">2. Verify Signature with Public Key</h3>
-            <p class="text-sm text-gray-500 dark:text-gray-400">Uses signature from the step above.</p>
-            <button (click)="verifySignature()" class="btn-primary w-full" [disabled]="!generatedSignature">Verify</button>
+
+            <label for="signature-input" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Signature to Verify (Base64)</label>
+            <textarea id="signature-input" [(ngModel)]="signatureToVerify" rows="3" placeholder="Paste a signature here to verify"
+                      class="input-field w-full font-mono text-xs"></textarea>
+
+            <button (click)="verifySignature()" class="btn-primary w-full" [disabled]="!signatureToVerify">Verify</button>
             <pre class="response-box" *ngIf="verifyResponse">{{ verifyResponse | json }}</pre>
           </div>
-
         </div>
       </section>
 
@@ -162,7 +164,6 @@
               {{ key.alias }}
             </option>
           </select>
-
           <textarea [(ngModel)]="dataToHmac" rows="2" placeholder="Data for HMAC"
                     class="input-field w-full mb-4"></textarea>
 
@@ -180,11 +181,14 @@
 
           <div class="space-y-4">
             <h3 class="font-medium text-gray-700 dark:text-gray-300">2. Verify HMAC</h3>
-            <p class="text-sm text-gray-500 dark:text-gray-400">Uses HMAC from the step above.</p>
-            <button (click)="verifyHmac()" class="btn-primary w-full" [disabled]="!generatedHmac">Verify</button>
+
+            <label for="hmac-input" class="block text-sm font-medium text-gray-700 dark:text-gray-300">HMAC to Verify (Base64)</label>
+            <textarea id="hmac-input" [(ngModel)]="hmacToVerify" rows="2" placeholder="Paste an HMAC here to verify"
+                      class="input-field w-full font-mono text-xs"></textarea>
+
+            <button (click)="verifyHmac()" class="btn-primary w-full" [disabled]="!hmacToVerify">Verify</button>
             <pre class="response-box" *ngIf="verifyHmacResponse">{{ verifyHmacResponse | json }}</pre>
           </div>
-
         </div>
       </section>
 
