@@ -36,6 +36,10 @@ export class HomeComponent implements OnInit {
   symmAlgorithm: string | null = null;
   asymmAlgorithm: string | null = null;
   dataToProcess = 'Hello KMS!';
+  signAlgorithm = 'SHA256withRSA';
+  hmacAlgorithm = 'HmacSHA256';
+  dataToSign = 'This data needs a signature!';
+  dataToHmac = 'This data needs an HMAC!';
 
   // --- API RESPONSES (to display in UI) ---
   createKeyResponse: any;
@@ -46,10 +50,18 @@ export class HomeComponent implements OnInit {
   decryptAsymmetricResponse: any;
   symmetricAlgorithms: any;
   asymmetricAlgorithms: any;
+  signResponse: any;
+  verifyResponse: any;
+  generateHmacResponse: any;
+  verifyHmacResponse: any;
 
   // --- Intermediate values for chained operations ---
   encryptedDataKey = '';
   encryptedAsymmetricData = '';
+  generatedSignature = '';
+  generatedHmac = '';
+  signatureToVerify = '';
+  hmacToVerify = '';
 
   ngOnInit(): void {
     // Fetch algorithms when the component loads
@@ -212,6 +224,82 @@ export class HomeComponent implements OnInit {
       .subscribe({
         next: res => this.asymmetricAlgorithms = res,
         error: err => this.asymmetricAlgorithms = err.error
+      });
+  }
+
+  // === SIGNING & HMAC METHODS ===
+
+  signData(): void {
+    const dataToSignBase64 = btoa(this.dataToSign);
+
+    const body = {
+      keyId: this.opAliasAS, // Koristimo selektor za asimetrične ključeve
+      algorithm: this.signAlgorithm,
+      dataToSignBase64: dataToSignBase64
+    };
+
+    this.http.post(`${this.apiUrl}/signing/sign`, body, { headers: this.getAuthHeaders() })
+      .subscribe({
+        next: (res: any) => {
+          this.signResponse = res;
+          this.generatedSignature = res.signatureBase64;
+          this.signatureToVerify = res.signatureBase64;
+        },
+        error: err => this.signResponse = err.error
+      });
+  }
+
+  verifySignature(): void {
+    const originalDataBase64 = btoa(this.dataToSign);
+
+    const body = {
+      keyId: this.opAliasAS,
+      algorithm: this.signAlgorithm,
+      originalDataBase64: originalDataBase64,
+      signatureBase64: this.signatureToVerify
+    };
+
+    this.http.post(`${this.apiUrl}/signing/verify`, body, { headers: this.getAuthHeaders() })
+      .subscribe({
+        next: res => this.verifyResponse = res,
+        error: err => this.verifyResponse = err.error
+      });
+  }
+
+  generateHmac(): void {
+    const dataBase64 = btoa(this.dataToHmac);
+
+    const body = {
+      keyId: this.opAliasS,
+      algorithm: this.hmacAlgorithm,
+      dataBase64: dataBase64
+    };
+
+    this.http.post(`${this.apiUrl}/hmac/generate`, body, { headers: this.getAuthHeaders() })
+      .subscribe({
+        next: (res: any) => {
+          this.generateHmacResponse = res;
+          this.generatedHmac = res.hmacBase64;
+          this.hmacToVerify = res.hmacBase64;
+        },
+        error: err => this.generateHmacResponse = err.error
+      });
+  }
+
+  verifyHmac(): void {
+    const dataBase64 = btoa(this.dataToHmac);
+
+    const body = {
+      keyId: this.opAliasS,
+      algorithm: this.hmacAlgorithm,
+      dataBase64: dataBase64,
+      hmacBase64: this.hmacToVerify
+    };
+
+    this.http.post(`${this.apiUrl}/hmac/verify`, body, { headers: this.getAuthHeaders() })
+      .subscribe({
+        next: res => this.verifyHmacResponse = res,
+        error: err => this.verifyHmacResponse = err.error
       });
   }
 
