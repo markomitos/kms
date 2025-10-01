@@ -116,5 +116,77 @@
         </div>
       </section>
 
+      <section class="flex flex-col">
+        <div class="card">
+          <h2 class="card-header">✍️ Digital Signatures</h2>
+
+          <select [(ngModel)]="opAliasAS" class="input-field w-full mb-4">
+            <option [ngValue]="null" disabled>-- Select an Asymmetric Key --</option>
+            <option *ngFor="let key of asymmetricKeys" [value]="key.id">
+              {{ key.alias }}
+            </option>
+          </select>
+
+          <textarea [(ngModel)]="dataToSign" rows="2" placeholder="Data to sign"
+                    class="input-field w-full mb-4"></textarea>
+
+          <div class="space-y-4 mb-4">
+            <h3 class="font-medium text-gray-700 dark:text-gray-300">1. Sign Data with Private Key</h3>
+            <select [(ngModel)]="signAlgorithm" class="input-field w-full">
+              <option>SHA256withRSA</option>
+              <option>SHA512withRSA</option>
+            </select>
+            <button (click)="signData()" class="btn-primary w-full">Sign</button>
+            <pre class="response-box" *ngIf="signResponse">{{ signResponse | json }}</pre>
+          </div>
+
+          <hr class="my-6 border-gray-200 dark:border-gray-700">
+
+          <div class="space-y-4">
+            <h3 class="font-medium text-gray-700 dark:text-gray-300">2. Verify Signature with Public Key</h3>
+            <p class="text-sm text-gray-500 dark:text-gray-400">Uses signature from the step above.</p>
+            <button (click)="verifySignature()" class="btn-primary w-full" [disabled]="!generatedSignature">Verify</button>
+            <pre class="response-box" *ngIf="verifyResponse">{{ verifyResponse | json }}</pre>
+          </div>
+
+        </div>
+      </section>
+
+      <section class="flex flex-col">
+        <div class="card">
+          <h2 class="card-header">🔐 HMAC Operations</h2>
+
+          <select [(ngModel)]="opAliasS" class="input-field w-full mb-4">
+            <option [ngValue]="null" disabled>-- Select a Symmetric Key --</option>
+            <option *ngFor="let key of symmetricKeys" [value]="key.id">
+              {{ key.alias }}
+            </option>
+          </select>
+
+          <textarea [(ngModel)]="dataToHmac" rows="2" placeholder="Data for HMAC"
+                    class="input-field w-full mb-4"></textarea>
+
+          <div class="space-y-4 mb-4">
+            <h3 class="font-medium text-gray-700 dark:text-gray-300">1. Generate HMAC</h3>
+            <select [(ngModel)]="hmacAlgorithm" class="input-field w-full">
+              <option>HmacSHA256</option>
+              <option>HmacSHA512</option>
+            </select>
+            <button (click)="generateHmac()" class="btn-primary w-full">Generate</button>
+            <pre class="response-box" *ngIf="generateHmacResponse">{{ generateHmacResponse | json }}</pre>
+          </div>
+
+          <hr class="my-6 border-gray-200 dark:border-gray-700">
+
+          <div class="space-y-4">
+            <h3 class="font-medium text-gray-700 dark:text-gray-300">2. Verify HMAC</h3>
+            <p class="text-sm text-gray-500 dark:text-gray-400">Uses HMAC from the step above.</p>
+            <button (click)="verifyHmac()" class="btn-primary w-full" [disabled]="!generatedHmac">Verify</button>
+            <pre class="response-box" *ngIf="verifyHmacResponse">{{ verifyHmacResponse | json }}</pre>
+          </div>
+
+        </div>
+      </section>
+
     </main>
 </div>
