@@ -243,6 +243,7 @@ export class HomeComponent implements OnInit {
         next: (res: any) => {
           this.signResponse = res;
           this.generatedSignature = res.signatureBase64;
+          this.signatureToVerify = res.signatureBase64;
         },
         error: err => this.signResponse = err.error
       });
@@ -255,7 +256,7 @@ export class HomeComponent implements OnInit {
       keyId: this.opAliasAS,
       algorithm: this.signAlgorithm,
       originalDataBase64: originalDataBase64,
-      signatureBase64: this.generatedSignature
+      signatureBase64: this.signatureToVerify
     };
 
     this.http.post(`${this.apiUrl}/signing/verify`, body, { headers: this.getAuthHeaders() })
@@ -279,6 +280,7 @@ export class HomeComponent implements OnInit {
         next: (res: any) => {
           this.generateHmacResponse = res;
           this.generatedHmac = res.hmacBase64;
+          this.hmacToVerify = res.hmacBase64;
         },
         error: err => this.generateHmacResponse = err.error
       });
@@ -291,7 +293,7 @@ export class HomeComponent implements OnInit {
       keyId: this.opAliasS,
       algorithm: this.hmacAlgorithm,
       dataBase64: dataBase64,
-      hmacBase64: this.generatedHmac
+      hmacBase64: this.hmacToVerify
     };
 
     this.http.post(`${this.apiUrl}/hmac/verify`, body, { headers: this.getAuthHeaders() })
